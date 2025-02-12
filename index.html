@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List</title>
+    <!-- exeternal libarary  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Tajawal", serif;
+        background: rgb(39 76 67);
+      }
+      .task {
+        display: flex;
+        background-color: white;
+        padding-right: 10px;
+        border-bottom: solid black 1px;
+        transition: box-shadow 0.5s;
+        margin: 10px;
+      }
+
+      .done {
+        background-color: rgb(158, 253, 160);
+      }
+      .task:hover {
+        box-shadow: 0px 3px 15px rgba(97, 97, 97, 0.843);
+      }
+
+      .task-table {
+        background: rgb(239, 239, 239);
+        width: 60%;
+        /* height: 500px; */
+        margin-top: 130px;
+      }
+      button {
+        border: none;
+        font-size: 20px;
+        box-shadow: 0px 3px 5px rgba(168, 168, 168, 0.38);
+      }
+      button.circular {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: white;
+        line-height: 0;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main" style="direction: rtl">
+      <!-- Center div -->
+      <div style="display: flex; justify-content: center; align-items: center">
+        <!-- TASKS TABLE -->
+        <div class="task-table">
+          <!-- HEADER -->
+          <div
+            style="
+              width: 100%;
+              text-align: center;
+              background: rgb(92, 52, 155);
+              color: white;
+              padding-top: 8px;
+              padding-bottom: 8px;
+            "
+          >
+            <h1 style="display: inline">المهام</h1>
+            <button
+              onclick="newTask()"
+              id="add-bt"
+              class="circular"
+              style="
+                float: right;
+                background: white;
+                margin-right: 10px;
+                color: black;
+              "
+            >
+              <span class="material-symbols-outlined"> add </span>
+            </button>
+            <!-- <button
+              id="lang-bt"
+              class="circular"
+              style="
+                float: left;
+                background: white;
+                margin-left: 10px;
+                color: black;
+              "
+              onclick="changeLang()"
+            >
+              <span class="material-symbols-outlined">language </span>
+            </button> -->
+          </div>
+          <!--// HEADER -->
+
+          <!-- TASKS -->
+          <div id="tasks" style="padding: 20px"></div>
+          <!--// TASKS //-->
+        </div>
+        <!--// TASKS TABLE //-->
+      </div>
+      <!--// Center div //-->
+    </div>
+  </body>
+  <script>
+    let lang = "arabic";
+    let tasks = [
+      {
+        title: "قراءة كتاب",
+        date: "15/12/2025",
+        isDone: false,
+      },
+      {
+        title: "تعلم ",
+        date: "27/12/2025",
+        isDone: true,
+      },
+      {
+        title: "اختبار",
+        date: "15/12/2025",
+        isDone: false,
+      },
+    ];
+
+    getTasksFromStorge();
+
+    function changeLang() {
+      document.getElementById("main").style.direction = "ltr";
+    }
+
+    function fillTasksOnThePage() {
+      document.getElementById("tasks").innerHTML = "";
+      let index = 0;
+      for (task of tasks) {
+        let content = `<!-- TASK -->
+            <div class="task ${task.isDone ? "done" : ""} ">
+              <!-- TASKS INFO -->
+              <div style="width: 70%; ">
+                <h2>${task.title}</h2>
+                <div>
+                  <span class="material-symbols-outlined">
+                    calendar_month
+                  </span>
+                  <span>${task.date} </span>
+                </div>
+              </div>
+              <!--// TASKS INFO //-->
+
+              <!-- TASKS ACTIONS -->
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-around;
+                  align-items: center;
+                  width: 40%;
+                "
+              >
+                <button onclick="deleteTask(${index})"
+                  class="circular"
+                  style="background-color: rgb(114, 0, 0)"
+                >
+                  <span class="material-symbols-outlined"> delete </span>
+                </button>
+                <button onclick="toggleTaskCompletion(${index})"
+                  class="circular" ${
+                    task.isDone
+                      ? 'style="background-color:red "'
+                      : 'style="background-color:rgb(0, 150, 30)"'
+                  }
+                  style="background-color: rgb(0, 150, 30)"
+                >
+                ${
+                  task.isDone
+                    ? '<span class="material-symbols-outlined">cancel</span>'
+                    : '<span class="material-symbols-outlined"> check </span>'
+                }
+                </button>
+                <button onclick="editTask(${index})"
+                  class="circular"
+                  style="background-color: rgb(0, 16, 197, 0.692)"
+                >
+                  <span class="material-symbols-outlined"> edit </span>
+                </button>
+              </div>
+              <!--// TASKS ACTIONS //-->
+            </div>
+            <!--// TASK //-->
+        `;
+        document.getElementById("tasks").innerHTML += content;
+        index++;
+      }
+    }
+    fillTasksOnThePage();
+
+    function newTask() {
+      let taskName = prompt("الرجاء ادخال اسم المهمة");
+      if (taskName !== "" && taskName !== null) {
+        let taskObj = {
+          title: taskName,
+          date: getNowDate(),
+          isDone: false,
+        };
+        tasks.push(taskObj);
+
+        storeTasks();
+
+        fillTasksOnThePage();
+      }
+    }
+
+    function deleteTask(index) {
+      let isConfirm = confirm(
+        " هل انت متاكد من حذف  " + tasks[index].title + " ؟ "
+      );
+      if (isConfirm) {
+        tasks.splice(index, 1);
+        storeTasks();
+        fillTasksOnThePage();
+      }
+    }
+
+    function editTask(index) {
+      let newTaskTitle = prompt(
+        "الرجاء ادخال اسم المهمة الجديد: ",
+        tasks[index].title
+      );
+      if (newTaskTitle !== null) {
+        tasks[index].title = newTaskTitle;
+        tasks[index].date = getNowDate();
+        tasks[index].isDone = false;
+        storeTasks();
+        fillTasksOnThePage();
+      }
+    }
+
+    function toggleTaskCompletion(index) {
+      if (tasks[index].isDone == false) {
+        tasks[index].isDone = true;
+        storeTasks();
+        fillTasksOnThePage();
+      } else {
+        tasks[index].isDone = false;
+        storeTasks();
+        fillTasksOnThePage();
+      }
+    }
+
+    function getNowDate() {
+      //adding creating date
+      let now = new Date();
+      let date =
+        now.getDate() + "/" + (now.getMonth() + 1) + "/" + now.getFullYear();
+      return date;
+    }
+
+    //*********************local storge********
+    function storeTasks() {
+      //convert object to string
+      let taskString = JSON.stringify(tasks);
+      //saving objects in local storge
+      localStorage.setItem("tasks", taskString);
+    }
+
+    //get data from local storge and converted to json
+    function getTasksFromStorge() {
+      let retrivedTasks = JSON.parse(localStorage.getItem("tasks"));
+
+      //tasks=retrivedTasks ?? [];
+      if (retrivedTasks == null) {
+        tasks = [];
+      } else {
+        tasks = retrivedTasks;
+      }
+    }
+  </script>
+</html>
